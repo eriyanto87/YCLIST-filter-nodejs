@@ -14,13 +14,13 @@ csv()
         !filteredArr.includes(contacts["Company Name"]) &&
         contacts["on_dnc"] !== "Y"
       ) {
-        //     fs.writeFile("out.json", JSON.stringify(contacts), function (err) {
-        //       if (err) {
-        //         return console.log(err);
-        //       }
-        //       console.log(contacts);
-        //       // console.log("The file was saved!");
-        //     });
+        fs.writeFile("out.json", JSON.stringify(contacts), function (err) {
+          if (err) {
+            return console.log(err);
+          }
+          console.log(contacts);
+          // console.log("The file was saved!");
+        });
         converter.json2csv(contacts, (err, csv) => {
           if (err) {
             throw err;
