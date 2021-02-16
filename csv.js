@@ -1,32 +1,46 @@
-const csv = require("csvtojson");
-const numbers = require("./numbers.json");
-const converter = require("json-2-csv");
 const fs = require("fs");
+const readline = require("readline");
+const stream = require("stream");
 
-csv()
-  .fromFile("./yclist_company_names.csv")
-  .then((jsonObj) => {
-    let filteredArr = [];
-    jsonObj.map((name) => filteredArr.push(name.company_name));
-    //console.log(filteredArr);
-    numbers.map((contacts) => {
-      if (
-        !filteredArr.includes(contacts["Company Name"]) &&
-        contacts["on_dnc"] !== "Y"
-      ) {
-        fs.writeFile("out.json", JSON.stringify(contacts), function (err) {
-          if (err) {
-            return console.log(err);
-          }
-          console.log(contacts);
-          // console.log("The file was saved!");
-        });
-        converter.json2csv(contacts, (err, csv) => {
-          if (err) {
-            throw err;
-          }
-          console.log(csv);
-        });
-      }
+const csvFilterPath = "./yclist.csv";
+const csvContactPath = "./combined.csv";
+
+const instream = fs.createReadStream(csvFilterPath);
+const outstream = new stream();
+const rl = readline.createInterface(instream, outstream);
+
+let filter = [];
+
+rl.on("line", function (line) {
+  filter.push(line);
+});
+
+rl.on("close", function () {
+  // console.log('filter', filter);
+  compareData(filter);
+});
+
+function compareData(filter) {
+  const in2 = fs.createReadStream(csvContactPath);
+  const out2 = new stream();
+  const rl2 = readline.createInterface(in2, out2);
+
+  let contacts = [];
+
+  rl2.on("line", function (line) {
+    contacts.push(line);
+  });
+
+  rl2.on("close", function () {
+    const newContacts = contacts.filter(
+      (c) => !filter.includes(c.split(",")[0])
+    );
+    // console.log('contacts', newContacts);
+    newContacts.forEach((d) => {
+      fs.appendFile("new-combined.csv", d + "\n", function (err) {
+        if (err) throw err;
+        console.log("Added");
+      });
     });
   });
+}
